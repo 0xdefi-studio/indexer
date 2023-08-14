@@ -1,0 +1,18 @@
+version: "3"
+
+x-common-properties: &app-body
+  build: .
+  restart: "always"
+  volumes:
+    - ".:/src/github.com/0xdefi-studio/indexer"
+  networks:
+    - "db_network"
+
+services:
+  fomo3d_indexer:
+    <<: *app-body
+    command: "go run main/main.go fomo3dV1 --config local.cobra.yaml"
+
+networks:
+  db_network:
+    external: True

@@ -1,0 +1,6 @@
+.idea/
+.env.dev.local
+postgres_data
+/local.cobra.yaml
+/local.cobra.local.docker.yaml
+/local.cobra.prod.docker.yaml

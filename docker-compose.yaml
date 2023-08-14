@@ -1,0 +1,32 @@
+version: "3"
+
+x-common-properties: &app-body
+  build: .
+  restart: "always"
+  volumes:
+    - ".:/src/github.com/0xdefi-studio/indexer"
+  networks:
+    - "db_network"
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "30m"  # Adjust this as needed
+      max-file: "5"    # Adjust this as needed
+
+services:
+  fomo3d_indexer:
+    <<: *app-body
+    command: "go run main/main.go fomo3dV1 --config local.cobra.yaml"
+
+  telegram_server:
+    <<: *app-body
+    command: "go run main/main.go telegram --config local.cobra.yaml"
+
+  dice_indexer:
+    <<: *app-body
+    command: "go run main/main.go dice --config local.cobra.yaml"
+
+networks:
+  db_network:
+    external: True
+
