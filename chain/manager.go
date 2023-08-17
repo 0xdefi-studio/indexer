@@ -265,7 +265,8 @@ func (m *Manager) ParseEvent(fromBlock int64, toBlock int64, to []common.Address
 				// current time in seconds
 
 				current := uint64(time.Now().Unix())
-				if current-3600 <= timestamp {
+				zeroBigInt := big.NewInt(0)
+				if current-3600 <= timestamp && onEndTx.KeysBought.Cmp(zeroBigInt) != 0 {
 					m.Sugar.Infof("In notification discord start")
 					cmd.SendDiscordEndTx(discord_web_hook, onEndTx.PlayerAddress.String(), onEndTx.KeysBought, onEndTx.EthIn, timestamp)
 					m.Sugar.Infof("In notification telegram start")
