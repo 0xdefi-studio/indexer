@@ -28,7 +28,8 @@ func ShortenAddress(address string) string {
 }
 
 var divider = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
-var divider20 = new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
+
+//var divider20 = new(big.Int).Exp(big.NewInt(10), big.NewInt(20), nil)
 
 func SendDiscordEndTx(discord_web_hook string, userAddress string, keys *big.Int, amount *big.Int, createdTime uint64) {
 	data := WebhookData{

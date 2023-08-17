@@ -22,7 +22,7 @@ func SendTelegramEndTx(telegram_key string, chat_id int64, userAddress string, k
 	message := Message{
 		ChatID: chat_id,
 		Text: fmt.Sprintf("🔑  %v Keys Bought!\n\n🎰 Pot: %v MNT\n⏳ Countdown: %v\n🤑 Buyer: %v\n💰 Cost: %v MNT\n\n",
-			new(big.Float).Quo(new(big.Float).SetInt(keys), new(big.Float).SetInt(divider20)).String(),
+			new(big.Float).Quo(new(big.Float).SetInt(keys), new(big.Float).SetInt(divider)).String(),
 			new(big.Float).Quo(new(big.Float).SetInt(PotAmount), new(big.Float).SetInt(divider)).String(),
 			DurationToTimeFormat(roundEndTime),
 			ShortenAddress(userAddress),
