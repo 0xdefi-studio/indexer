@@ -5,6 +5,6 @@ import (
 )
 
 const DICE = "dice"
-const DICE_CONTRACT = "0xbCf0BDaAB5731e1CDF9ef03B8b65003a8a5c4Ccf"
+const DICE_CONTRACT = "0x2760D70eC200380ce4C9e08a4ea287e9388ea9E2"
 
 var DiceContractHex = common.HexToAddress(DICE_CONTRACT)
