@@ -19,14 +19,23 @@ type Message struct {
 
 func SendTelegramEndTx(telegram_key string, chat_id int64, userAddress string, keys *big.Int, amount *big.Int, createdTime uint64, PotAmount *big.Int, roundEndTime *big.Int) {
 	url := "https://api.telegram.org/bot" + telegram_key + "/sendMessage"
-	message := Message{
-		ChatID: chat_id,
-		Text: fmt.Sprintf("🔑  %v Keys Bought!\n\n🎰 Pot: %v MNT\n⏳ Countdown: %v\n🤑 Buyer: %v\n💰 Cost: %v MNT\n\n",
-			new(big.Float).Quo(new(big.Float).SetInt(keys), new(big.Float).SetInt(divider)).String(),
+	keysFloat := new(big.Float).Quo(new(big.Float).SetInt(keys), new(big.Float).SetInt(divider))
+	text := fmt.Sprintf("🔑  %v Keys Bought!\n\n🎰 Pot: %v MNT\n⏳ Countdown: %v\n🤑 Buyer: %v\n💰 Cost: %v MNT\n\n",
+		keysFloat.String(),
+		new(big.Float).Quo(new(big.Float).SetInt(PotAmount), new(big.Float).SetInt(divider)).String(),
+		DurationToTimeFormat(roundEndTime),
+		ShortenAddress(userAddress),
+		new(big.Float).Quo(new(big.Float).SetInt(amount), new(big.Float).SetInt(divider)).String())
+	if keysFloat.Cmp(big.NewFloat(1)) == -1 {
+		text = fmt.Sprintf("🔐  No keys bought! Key price increased, while tx submitted\n\n🎰 Pot: %v MNT\n⏳ Countdown: %v\n🤑 Buyer: %v\n💰 Cost: %v MNT\n\n",
 			new(big.Float).Quo(new(big.Float).SetInt(PotAmount), new(big.Float).SetInt(divider)).String(),
 			DurationToTimeFormat(roundEndTime),
 			ShortenAddress(userAddress),
-			new(big.Float).Quo(new(big.Float).SetInt(amount), new(big.Float).SetInt(divider)).String()),
+			new(big.Float).Quo(new(big.Float).SetInt(amount), new(big.Float).SetInt(divider)).String())
+	}
+	message := Message{
+		ChatID:    chat_id,
+		Text:      text,
 		ParseMode: "Markdown",
 		ReplyMarkup: map[string]any{"inline_keyboard": []any{
 			[]any{
