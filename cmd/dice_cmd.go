@@ -23,7 +23,7 @@ var diceCmd = &cobra.Command{
 		)
 		walker.SetDicePrivateKey(PRIVATE_KEY)
 		//give me addresses = fomo3d.ZhartaETHAddressesHexList + []common.Address{fomo3d.ZhartaUSDCAddressHex, fomo3d.ZhartaETHSquiggledDaoAddressHex}
-		var addresses = []common.Address{dice.DiceContractHex}
+		var addresses = []common.Address{dice.DiceContractHex, dice.DiceContractV2Hex}
 		//addresses = append(addresses, fomo3d.ZhartaETHAddressesHexList...)
 		walker.Run(startBlock, step, addresses, dice.DICE, DISCORD_WEBHOOK_URL, TELEGRAM_BOT_KEY, TELEGRAM_CHAT_ID)
 		return nil
