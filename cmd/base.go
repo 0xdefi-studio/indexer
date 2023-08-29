@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/0xdefi-studio/indexer/bankroll"
 	"github.com/0xdefi-studio/indexer/chain"
 	"github.com/0xdefi-studio/indexer/dice"
 	"github.com/0xdefi-studio/indexer/fomo3d"
@@ -30,6 +31,13 @@ func getStartBlock(db *pg.DB, market string) int64 {
 		err := db.Model(&obj).Order("block_num DESC").First()
 		if err != nil {
 			return DICE_START_BLOCK
+		}
+		return int64(obj.BlockNum)
+	case bankroll.BANKROLL:
+		var obj models2.BankrollTx
+		err := db.Model(&obj).Order("block_num DESC").First()
+		if err != nil {
+			return BANKROLL_START_BLOCK
 		}
 		return int64(obj.BlockNum)
 	default:

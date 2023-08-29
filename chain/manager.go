@@ -3,6 +3,7 @@ package chain
 import (
 	"context"
 	"crypto/ecdsa"
+	"github.com/0xdefi-studio/indexer/bankroll"
 	"github.com/0xdefi-studio/indexer/dice"
 	"github.com/0xdefi-studio/indexer/fomo3d"
 	models2 "github.com/0xdefi-studio/indexer/models"
@@ -30,11 +31,15 @@ import (
 var Fomo3dEndTxV1SigHex = crypto.Keccak256Hash([]byte("onEndTx(uint256,uint256,bytes32,address,uint256,uint256,address,bytes32,uint256,uint256,uint256,uint256,uint256,uint256)"))
 var DicePlayEventSig = crypto.Keccak256Hash([]byte("Dice_Play_Event(address,uint256)"))
 
+var BankrollDepositSigHash = crypto.Keccak256Hash([]byte("Deposit(address,address,uint256,uint256)"))
+var BankrollWithdrawSigHash = crypto.Keccak256Hash([]byte("Withdraw(address,address,address,uint256,uint256)"))
+
 type Manager struct {
 	Sugar       *zap.SugaredLogger
 	Client      *ethclient.Client
 	Fomo3dV1ABI ABI.ABI
 	DiceABI     ABI.ABI
+	BankrollABI ABI.ABI
 	DB          *pg.DB
 	FromAddress common.Address
 	PrivateKey  *ecdsa.PrivateKey
@@ -101,6 +106,10 @@ func (m *Manager) InitFomo3dV1ABI(abi string) {
 
 func (m *Manager) InitDiceABI(abi string) {
 	m.DiceABI, _ = ABI.JSON(strings.NewReader(abi))
+}
+
+func (m *Manager) InitBankrollABI(abi string) {
+	m.BankrollABI, _ = ABI.JSON(strings.NewReader(abi))
 }
 
 func (m *Manager) SetDicePrivateKey(privateKeyStr string) {
@@ -307,6 +316,36 @@ func (m *Manager) ParseEvent(fromBlock int64, toBlock int64, to []common.Address
 
 				// current time in seconds
 			}
+		} else if project == bankroll.BANKROLL {
+			switch log.Topics[0].Hex() {
+			case BankrollDepositSigHash.Hex():
+				m.Sugar.Debugf("Get Bankroll Deposit event\n")
+				depositTx, err := m.ParseBankrollDepositTx(log)
+				if err != nil {
+					m.Sugar.Errorf("Unpack Bankroll Deposit event error: %s\n", err.Error())
+					continue
+				}
+				m.Sugar.Infof("Get Bankroll Deposit event, Assets: %v, RequestId: %v \n", depositTx.Caller, depositTx.Assets)
+				_, err = m.InsertBankrollDepositTx(depositTx, log.Address.String(), log.BlockNumber, log.TxHash.String(), timestamp)
+				if err != nil {
+					m.Sugar.Errorf("Insert Bankroll Deposit event error: %s\n", err.Error())
+					continue
+				}
+			case BankrollWithdrawSigHash.Hex():
+				m.Sugar.Debugf("Get Bankroll Withdraw event\n")
+				withdrawTx, err := m.ParseBankrollWithdrawTx(log)
+				if err != nil {
+					m.Sugar.Errorf("Unpack Bankroll Withdraw event error: %s\n", err.Error())
+					continue
+				}
+				m.Sugar.Infof("Get Bankroll Withdraw event, PlayerAddress: %v, RequestId: %v \n", withdrawTx.Caller, withdrawTx.Assets)
+				_, err = m.InsertBankrollWithdrawTx(withdrawTx, log.Address.String(), log.BlockNumber, log.TxHash.String(), timestamp)
+				if err != nil {
+					m.Sugar.Errorf("Insert Bankroll Withdraw event error: %s\n", err.Error())
+					continue
+				}
+
+			}
 		}
 
 	}
@@ -335,6 +374,24 @@ func (m *Manager) CreateDiceSchema() error {
 	m.Sugar.Infof("Creating CreateDiceSchema schema...\n")
 	models := []interface{}{
 		(*models2.DicePlayTx)(nil),
+	}
+
+	for _, model := range models {
+		err := m.DB.Model(model).CreateTable(&orm.CreateTableOptions{
+			Temp:        false,
+			IfNotExists: true,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *Manager) CreateBankrollSchema() error {
+	m.Sugar.Infof("Creating CreateBankrollSchema schema...\n")
+	models := []interface{}{
+		(*models2.BankrollTx)(nil),
 	}
 
 	for _, model := range models {

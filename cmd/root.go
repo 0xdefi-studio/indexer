@@ -12,21 +12,22 @@ var walker *chain.Manager
 
 var (
 	// Used for flags.
-	cfgFile             string
-	DISCORD_WEBHOOK_URL string
-	FOMO3D_START_BLOCK  int64
-	RPC_URL             string
-	DBUser              string
-	DBPassword          string
-	DBName              string
-	DBPort              int
-	DBHost              string
-	Step                int64
-	IsDebug             bool
-	TELEGRAM_BOT_KEY    string
-	TELEGRAM_CHAT_ID    int64
-	DICE_START_BLOCK    int64
-	PRIVATE_KEY         string
+	cfgFile              string
+	DISCORD_WEBHOOK_URL  string
+	FOMO3D_START_BLOCK   int64
+	RPC_URL              string
+	DBUser               string
+	DBPassword           string
+	DBName               string
+	DBPort               int
+	DBHost               string
+	Step                 int64
+	IsDebug              bool
+	TELEGRAM_BOT_KEY     string
+	TELEGRAM_CHAT_ID     int64
+	DICE_START_BLOCK     int64
+	PRIVATE_KEY          string
+	BANKROLL_START_BLOCK int64
 
 	rootCmd = &cobra.Command{
 		Use:   "0xdefi-studio",
@@ -80,5 +81,6 @@ func initConfig() {
 		TELEGRAM_CHAT_ID = viper.GetInt64("TELEGRAM_CHAT_ID")
 		DICE_START_BLOCK = viper.GetInt64("DICE_START_BLOCK")
 		PRIVATE_KEY = viper.GetString("PRIVATE_KEY")
+		BANKROLL_START_BLOCK = viper.GetInt64("BANKROLL_START_BLOCK")
 	}
 }
