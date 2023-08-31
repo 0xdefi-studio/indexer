@@ -30,6 +30,10 @@ services:
     <<: *app-body
     command: "go run main/main.go bankroll --config local.cobra.yaml"
 
+  dice_outcome_indexer:
+    <<: *app-body
+    command: "go run main/main.go dice_outcome --config local.cobra.yaml"
+
 
 networks:
   db_network:
