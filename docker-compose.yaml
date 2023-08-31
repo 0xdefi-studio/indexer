@@ -26,6 +26,11 @@ services:
     <<: *app-body
     command: "go run main/main.go dice --config local.cobra.yaml"
 
+  bankroll_indexer:
+    <<: *app-body
+    command: "go run main/main.go bankroll --config local.cobra.yaml"
+
+
 networks:
   db_network:
     external: True

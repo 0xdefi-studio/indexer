@@ -10,7 +10,8 @@ type BankrollTx struct {
 	TokenType string
 	TxType    string
 
-	CurrentBalance string
+	CurrentSenderBalance string
+	CurrentBalance       string
 
 	BlockNum        uint64
 	TransactionHash string

@@ -49,3 +49,13 @@ func (m *Manager) ParseBankrollWithdrawTx(log types.Log) (*bankroll.BankrollWith
 	withdraw.Owner = common.HexToAddress(log.Topics[3].Hex())
 	return &withdraw, nil
 }
+
+func (m *Manager) ParseDiceOutcome(log types.Log) (*dice.DiceDiceOutcomeEvent, error) {
+	var outcome dice.DiceDiceOutcomeEvent
+	err := m.DiceABI.UnpackIntoInterface(&outcome, "Dice_Outcome_Event", log.Data)
+	if err != nil {
+		return nil, err
+	}
+	outcome.PlayerAddress = common.HexToAddress(log.Topics[1].Hex())
+	return &outcome, nil
+}

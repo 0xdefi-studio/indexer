@@ -40,6 +40,13 @@ func getStartBlock(db *pg.DB, market string) int64 {
 			return BANKROLL_START_BLOCK
 		}
 		return int64(obj.BlockNum)
+	case dice.DICE_OUTCOME:
+		var obj models2.DiceOutcome
+		err := db.Model(&obj).Order("block_num DESC").First()
+		if err != nil {
+			return DICE_START_BLOCK
+		}
+		return int64(obj.BlockNum)
 	default:
 		return 0
 	}

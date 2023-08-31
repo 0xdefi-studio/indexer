@@ -30,6 +30,7 @@ import (
 
 var Fomo3dEndTxV1SigHex = crypto.Keccak256Hash([]byte("onEndTx(uint256,uint256,bytes32,address,uint256,uint256,address,bytes32,uint256,uint256,uint256,uint256,uint256,uint256)"))
 var DicePlayEventSig = crypto.Keccak256Hash([]byte("Dice_Play_Event(address,uint256)"))
+var DiceOutcomeEventSig = crypto.Keccak256Hash([]byte("Dice_Outcome_Event(address,uint256,uint256,address,uint256[],uint256[],uint32)"))
 
 var BankrollDepositSigHash = crypto.Keccak256Hash([]byte("Deposit(address,address,uint256,uint256)"))
 var BankrollWithdrawSigHash = crypto.Keccak256Hash([]byte("Withdraw(address,address,address,uint256,uint256)"))
@@ -85,7 +86,11 @@ func (m *Manager) Run(startBlock int64, step int64, addresses []common.Address, 
 						}
 
 						m.Sugar.Debugf("Getting block %d\n", i)
-						err = m.ParseEvent(startBlock, i, addresses, market, discord_web_hook, telegram_key, chat_id)
+						if market == dice.DICE_OUTCOME {
+							err = m.ParseDiceOutcomeEvent(startBlock, i, addresses, market)
+						} else {
+							err = m.ParseEvent(startBlock, i, addresses, market, discord_web_hook, telegram_key, chat_id)
+						}
 						if err != nil {
 							m.Sugar.Errorf("Parse event error: %s block: %v", err.Error(), startBlock)
 						}
@@ -352,6 +357,49 @@ func (m *Manager) ParseEvent(fromBlock int64, toBlock int64, to []common.Address
 	return nil
 }
 
+func (m *Manager) ParseDiceOutcomeEvent(fromBlock int64, toBlock int64, to []common.Address, project string) error {
+	query := ethereum.FilterQuery{
+		FromBlock: big.NewInt(fromBlock),
+		ToBlock:   big.NewInt(toBlock),
+		Addresses: to,
+	}
+	m.Sugar.Debugf("Processing %v event from block %d to block %d\n", project, fromBlock, toBlock)
+	logs, err := m.Client.FilterLogs(context.Background(), query)
+	if err != nil {
+		return err
+	}
+
+	blockTimestamps := map[int64]uint64{}
+
+	for _, log := range logs {
+		timestamp, err := m.GetBlockTimestamp(log.BlockNumber, blockTimestamps)
+		if err != nil {
+			m.Sugar.Errorf("Error in getting block %s\n", err.Error())
+			continue
+		}
+		if project == dice.DICE_OUTCOME {
+			switch log.Topics[0].Hex() {
+			case DiceOutcomeEventSig.Hex():
+				m.Sugar.Debugf("Get Dice Outcome event\n")
+				outcomeTx, err := m.ParseDiceOutcome(log)
+				if err != nil {
+					m.Sugar.Errorf("Unpack Dice Outcome event error: %s\n", err.Error())
+					continue
+				}
+				m.Sugar.Infof("Get Dice Outcome event, PlayerAddress: %v\n", outcomeTx.PlayerAddress)
+				_, err = m.InsertDiceOutcomeTx(outcomeTx, log.Address.String(), log.BlockNumber, log.TxHash.String(), timestamp)
+				if err != nil {
+					m.Sugar.Errorf("Insert Dice Outcome event error: %s\n", err.Error())
+					continue
+				}
+			}
+
+		}
+	}
+
+	return nil
+}
+
 func (m *Manager) CreateFomo3dV1Schema() error {
 	m.Sugar.Infof("Creating Fomo3dV1Schema schema...\n")
 	models := []interface{}{
@@ -374,6 +422,24 @@ func (m *Manager) CreateDiceSchema() error {
 	m.Sugar.Infof("Creating CreateDiceSchema schema...\n")
 	models := []interface{}{
 		(*models2.DicePlayTx)(nil),
+	}
+
+	for _, model := range models {
+		err := m.DB.Model(model).CreateTable(&orm.CreateTableOptions{
+			Temp:        false,
+			IfNotExists: true,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *Manager) CreateDiceOutcomeSchema() error {
+	m.Sugar.Infof("Creating CreateDiceOutcomeSchema schema...\n")
+	models := []interface{}{
+		(*models2.DiceOutcome)(nil),
 	}
 
 	for _, model := range models {
