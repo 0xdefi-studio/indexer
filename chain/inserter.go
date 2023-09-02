@@ -31,6 +31,7 @@ func (m *Manager) InsertEndTxV1(endTx *fomo3d.Fomo3dOnEndTx, blockNum uint64, tx
 	}
 	_, err := m.DB.Model(l).Insert()
 	return l, err
+
 }
 
 func (m *Manager) InsertDicePlayTx(playTx *dice.DiceDicePlayEvent, contract string, blockNum uint64, txHash string, timestamp uint64) (*models2.DicePlayTx, error) {
@@ -207,6 +208,7 @@ func (m *Manager) InsertDiceOutcomeTx(outcome *dice.DiceDiceOutcomeEvent, contra
 		Payout:        outcome.Payout.String(),
 		TokenAddress:  tokenAddress,
 		Contract:      contract,
+		DiceOutcomes:  fmt.Sprint(outcome.DiceOutcomes),
 
 		CurrentBalance: prevBalance.String(),
 

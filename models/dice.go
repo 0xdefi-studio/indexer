@@ -20,6 +20,7 @@ type DiceOutcome struct {
 	TokenAddress   string
 	CurrentBalance string
 	Contract       string
+	DiceOutcomes   string
 
 	BlockNum        uint64
 	TransactionHash string
